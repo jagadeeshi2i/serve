@@ -9,3 +9,4 @@ numpy
 grpcio
 protobuf
 grpcio-tools
+scipy
