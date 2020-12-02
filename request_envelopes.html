@@ -9,7 +9,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>To check branch stability run the sanity suite as follows &mdash; PyTorch/Serve master documentation</title>
+  <title>Introduction &mdash; PyTorch/Serve master documentation</title>
   
 
   
@@ -184,12 +184,9 @@
             
               <!-- Local TOC -->
               <div class="local-toc"><ul>
-<li><a class="reference internal" href="#">To check branch stability run the sanity suite as follows</a></li>
-<li><a class="reference internal" href="#to-run-frontend-build-suite-run-following-command">To run frontend build suite run following command</a></li>
-<li><a class="reference internal" href="#to-run-backend-pytest-suite-run-following-command">To run backend pytest suite run following command</a></li>
-<li><a class="reference internal" href="#to-run-python-linting-on-ts-package-run-following-command">To run python linting on <code class="docutils literal notranslate"><span class="pre">ts</span></code> package run following command</a></li>
-<li><a class="reference internal" href="#to-run-pytest-suite-on-model-archiver-run-following-command">To run pytest suite on model-archiver run following command</a></li>
-<li><a class="reference internal" href="#to-run-it-suite-on-model-archiver-run-following-command">To run IT suite on model-archiver run following command</a></li>
+<li><a class="reference internal" href="#">Introduction</a></li>
+<li><a class="reference internal" href="#usage">Usage</a></li>
+<li><a class="reference internal" href="#contributing">Contributing</a></li>
 </ul>
 </div>
             
@@ -230,13 +227,13 @@
       </li>
 
         
-      <li>To check branch stability run the sanity suite as follows</li>
+      <li>Introduction</li>
     
     
       <li class="pytorch-breadcrumbs-aside">
         
             
-            <a href="_sources/code_coverage.md.txt" rel="nofollow"><img src="_static/images/view-page-source-icon.svg"></a>
+            <a href="_sources/request_envelopes.md.txt" rel="nofollow"><img src="_static/images/view-page-source-icon.svg"></a>
           
         
       </li>
@@ -262,68 +259,27 @@
             <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
              <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
               
-  <div class="section" id="to-check-branch-stability-run-the-sanity-suite-as-follows">
-<h1>To check branch stability run the sanity suite as follows<a class="headerlink" href="#to-check-branch-stability-run-the-sanity-suite-as-follows" title="Permalink to this headline">¶</a></h1>
-<ul>
-<li><p>Install dependencies (if not already installed)</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python scripts/install_dependencies.py
-</pre></div>
-</div>
-<blockquote>
-<div><p>For GPU with Cuda 10.1, make sure add the <code class="docutils literal notranslate"><span class="pre">cu101</span></code> argument to the above command</p>
-</div></blockquote>
-</li>
-<li><p>Execute sanity suite</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python ./torchserve_sanity.py
-</pre></div>
-</div>
-</li>
-</ul>
-</div>
-<div class="section" id="to-run-frontend-build-suite-run-following-command">
-<h1>To run frontend build suite run following command<a class="headerlink" href="#to-run-frontend-build-suite-run-following-command" title="Permalink to this headline">¶</a></h1>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>frontend/gradlew -p frontend clean build
-</pre></div>
-</div>
-<p>TorchServe frontend build suite consists of :</p>
+  <div class="section" id="introduction">
+<h1>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h1>
+<p>Many model serving systems provide a signature for request bodies. Examples include:</p>
 <ul class="simple">
-<li><p>checkstyle</p></li>
-<li><p>findbugs</p></li>
-<li><p>PMD</p></li>
-<li><p>UT</p></li>
+<li><p><a class="reference external" href="https://docs.seldon.io/projects/seldon-core/en/v1.1.0/graph/protocols.html">Seldon</a></p></li>
+<li><p><a class="reference external" href="https://github.com/kubeflow/kfserving/tree/master/docs">KFServing</a></p></li>
+<li><p><a class="reference external" href="https://cloud.google.com/ai-platform/prediction/docs/online-predict">Google Cloud AI Platform</a></p></li>
 </ul>
-<p>The reports are generated at following path : <code class="docutils literal notranslate"><span class="pre">frontend/server/build/reports</span></code></p>
+<p>Data scientists use these multi-framework systems to manage deployments of many different models, possibly written in different languages and frameworks. The platforms offer additional analytics on top of model serving, including skew detection, explanations and A/B testing. These platforms need a well-structured signature in order to both standardize calls across different frameworks and to understand the input data. To simplify support for many frameworks, though, these platforms will simply pass the request body along to the underlying model server.</p>
+<p>Torchserve currently has no fixed request body signature. Envelopes allow you to automatically translate from the fixed signature required for your model orchestrator to a flat Python list.</p>
 </div>
-<div class="section" id="to-run-backend-pytest-suite-run-following-command">
-<h1>To run backend pytest suite run following command<a class="headerlink" href="#to-run-backend-pytest-suite-run-following-command" title="Permalink to this headline">¶</a></h1>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python -m pytest --cov-report html:htmlcov --cov<span class="o">=</span>ts/ ts/tests/unit_tests/
-</pre></div>
+<div class="section" id="usage">
+<h1>Usage<a class="headerlink" href="#usage" title="Permalink to this headline">¶</a></h1>
+<ol class="simple">
+<li><p>When you write a handler, always expect a plain Python list containing data ready to go into <code class="docutils literal notranslate"><span class="pre">preprocess</span></code>. Crucially, you should assume that your handler code looks the same locally or in your model orchestrator.</p></li>
+<li><p>When you deploy Torchserve behind a model orchestrator, make sure to set the corresponding <code class="docutils literal notranslate"><span class="pre">service_envelope</span></code> in your <code class="docutils literal notranslate"><span class="pre">config.properties</span></code> file. For example, if you’re using Google Cloud AI Platform, which has a JSON format, you’d add <code class="docutils literal notranslate"><span class="pre">service_envelope=json</span></code> to your <code class="docutils literal notranslate"><span class="pre">config.properties</span></code> file.</p></li>
+</ol>
 </div>
-<p>The reports are generated at following path : <code class="docutils literal notranslate"><span class="pre">htmlcov/</span></code></p>
-</div>
-<div class="section" id="to-run-python-linting-on-ts-package-run-following-command">
-<h1>To run python linting on <code class="docutils literal notranslate"><span class="pre">ts</span></code> package run following command<a class="headerlink" href="#to-run-python-linting-on-ts-package-run-following-command" title="Permalink to this headline">¶</a></h1>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pylint -rn --rcfile<span class="o">=</span>./ts/tests/pylintrc ts/.
-</pre></div>
-</div>
-</div>
-<div class="section" id="to-run-pytest-suite-on-model-archiver-run-following-command">
-<h1>To run pytest suite on model-archiver run following command<a class="headerlink" href="#to-run-pytest-suite-on-model-archiver-run-following-command" title="Permalink to this headline">¶</a></h1>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span> model-archiver
-python -m pytest --cov-report html:htmlcov_ut --cov<span class="o">=</span>model_archiver/ model_archiver/tests/unit_tests/
-</pre></div>
-</div>
-<p>The reports are generated at following path : <code class="docutils literal notranslate"><span class="pre">model-archiver/htmlcov_ut/</span></code></p>
-</div>
-<div class="section" id="to-run-it-suite-on-model-archiver-run-following-command">
-<h1>To run IT suite on model-archiver run following command<a class="headerlink" href="#to-run-it-suite-on-model-archiver-run-following-command" title="Permalink to this headline">¶</a></h1>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span> model-archiver
-pip install .
-python -m pytest --cov-report html:htmlcov_it --cov<span class="o">=</span>model_archiver/ model_archiver/tests/integ_tests/
-</pre></div>
-</div>
-<p>The reports are generated at following path : <code class="docutils literal notranslate"><span class="pre">model-archiver/htmlcov_it/</span></code></p>
-<p><strong>Note</strong>: All the above commands needs to be excuted from serve home</p>
+<div class="section" id="contributing">
+<h1>Contributing<a class="headerlink" href="#contributing" title="Permalink to this headline">¶</a></h1>
+<p>Add new files under <code class="docutils literal notranslate"><span class="pre">ts/torch_handler/request_envelope</span></code>. Only include one class per file. The key used in <code class="docutils literal notranslate"><span class="pre">config.properties</span></code> will be the name of the .py file you write your class in.</p>
 </div>
 
 
@@ -360,12 +316,9 @@ python -m pytest --cov-report html:htmlcov_it --cov<span class="o">=</span>model
           <div class="pytorch-right-menu" id="pytorch-right-menu">
             <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
               <ul>
-<li><a class="reference internal" href="#">To check branch stability run the sanity suite as follows</a></li>
-<li><a class="reference internal" href="#to-run-frontend-build-suite-run-following-command">To run frontend build suite run following command</a></li>
-<li><a class="reference internal" href="#to-run-backend-pytest-suite-run-following-command">To run backend pytest suite run following command</a></li>
-<li><a class="reference internal" href="#to-run-python-linting-on-ts-package-run-following-command">To run python linting on <code class="docutils literal notranslate"><span class="pre">ts</span></code> package run following command</a></li>
-<li><a class="reference internal" href="#to-run-pytest-suite-on-model-archiver-run-following-command">To run pytest suite on model-archiver run following command</a></li>
-<li><a class="reference internal" href="#to-run-it-suite-on-model-archiver-run-following-command">To run IT suite on model-archiver run following command</a></li>
+<li><a class="reference internal" href="#">Introduction</a></li>
+<li><a class="reference internal" href="#usage">Usage</a></li>
+<li><a class="reference internal" href="#contributing">Contributing</a></li>
 </ul>
 
             </div>
