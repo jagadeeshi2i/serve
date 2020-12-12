@@ -71,6 +71,7 @@ class TorchserveModel(kfserving.KFModel):
         logging.debug("kfmodel predict request is %s", json.dumps(request))
         logging.info("PREDICTOR_HOST : %s", self.predictor_host)
         headers = {"Content-Type": "application/json; charset=UTF-8"}
+        print("Predictor Request >>>>>>>>", request)
         response = await self._http_client.fetch(
             PREDICTOR_URL_FORMAT.format(self.predictor_host, self.name),
             method="POST",
@@ -105,6 +106,7 @@ class TorchserveModel(kfserving.KFModel):
         logging.info("kfmodel explain request is %s", json.dumps(request))
         logging.info("EXPLAINER_HOST : %s", self.explainer_host)
         headers = {"Content-Type": "application/json; charset=UTF-8"}
+        print("Explainer Request >>>>>>>>", request)
         response = await self._http_client.fetch(
             EXPLAINER_URL_FORMAT.format(self.explainer_host, self.name),
             method="POST",
