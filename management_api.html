@@ -69,21 +69,7 @@
           </li>
 
           <li>
-            <div class="ecosystem-dropdown">
-              <a id="dropdownMenuButton" data-toggle="ecosystem-dropdown">
-                Ecosystem
-              </a>
-              <div class="ecosystem-dropdown-menu">
-                <a class="nav-dropdown-item" href="https://pytorch.org/hub"">
-                  <span class=dropdown-title>Models (Beta)</span>
-                  <p>Discover, publish, and reuse pre-trained models</p>
-                </a>
-                <a class="nav-dropdown-item" href="https://pytorch.org/ecosystem">
-                  <span class=dropdown-title>Tools & Libraries</span>
-                  <p>Explore the ecosystem of tools and libraries</p>
-                </a>
-              </div>
-            </div>
+            <a href="https://pytorch.org/ecosystem">Ecosystem</a>
           </li>
 
           <li>
@@ -99,22 +85,67 @@
           </li>
 
           <li>
-            <a href="https://pytorch.org/docs/stable/index.html">Docs</a>
+            <div id="resourcesDropdownButton" data-toggle="resources-dropdown" class="resources-dropdown">
+              <a class="resource-option with-down-orange-arrow">
+                Docs
+              </a>
+              <div class="resources-dropdown-menu">
+                <a class="doc-dropdown-option nav-dropdown-item" href="https://pytorch.org/docs/stable/index.html">
+                  <span class="dropdown-title">PyTorch</span>
+                  <p></p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item" href="https://pytorch.org/audio/stable/index.html">
+                  <span class="dropdown-title">torchaudio</span>
+                  <p></p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item" href="https://pytorch.org/text/stable/index.html">
+                  <span class="dropdown-title">torchtext</span>
+                  <p></p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item" href="https://pytorch.org/docs/stable/torchvision/">
+                  <span class="dropdown-title">torchvision</span>
+                  <p></p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item" href="https://pytorch.org/elastic/">
+                  <span class="dropdown-title">TorchElastic</span>
+                  <p></p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item" href="https://pytorch.org/serve/">
+                  <span class="dropdown-title">TorchServe</span>
+                  <p></p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item" href="https://pytorch.org/xla">
+                  <span class="dropdown-title">PyTorch on XLA Devices</span>
+                  <p></p>
+                </a>
+            </div>
           </li>
 
           <li>
-            <div class="resources-dropdown">
-              <a id="resourcesDropdownButton" data-toggle="resources-dropdown">
+            <div id="resourcesDropdownButton" data-toggle="resources-dropdown" class="resources-dropdown">
+              <a class="resource-option with-down-arrow">
                 Resources
               </a>
               <div class="resources-dropdown-menu">
-                <a class="nav-dropdown-item" href="https://pytorch.org/resources"">
-                  <span class=dropdown-title>Developer Resources</span>
+                <a class="nav-dropdown-item" href="https://pytorch.org/features">
+                  <span class="dropdown-title">About</span>
+                  <p>Learn about PyTorch’s features and capabilities</p>
+                </a>
+                <a class="nav-dropdown-item" href="https://pytorch.org/#community-module">
+                  <span class="dropdown-title">Community</span>
+                  <p>Join the PyTorch developer community to contribute, learn, and get your questions answered.</p>
+                </a>
+                <a class="nav-dropdown-item" href="https://pytorch.org/resources">
+                  <span class="dropdown-title">Developer Resources</span>
                   <p>Find resources and get questions answered</p>
                 </a>
-                <a class="nav-dropdown-item" href="https://pytorch.org/features">
-                  <span class=dropdown-title>About</span>
-                  <p>Learn about PyTorch’s features and capabilities</p>
+                <a class="nav-dropdown-item" href="https://discuss.pytorch.org/" target="_blank">
+                  <span class="dropdown-title">Forums</span>
+                  <p>A place to discuss PyTorch code, issues, install, research</p>
+                </a>
+                <a class="nav-dropdown-item" href="https://pytorch.org/hub">
+                  <span class="dropdown-title">Models (Beta)</span>
+                  <p>Discover, publish, and reuse pre-trained models</p>
                 </a>
               </div>
             </div>
@@ -128,10 +159,8 @@
 
       <a class="main-menu-open-button" href="#" data-behavior="open-mobile-menu"></a>
     </div>
-
   </div>
 </div>
-
 
 <body class="pytorch-body">
 
@@ -281,6 +310,7 @@
 <p>Similar to the <a class="reference internal" href="inference_api.html"><span class="doc">Inference API</span></a>, the Management API provides a <a class="reference external" href="#api-description">API description</a> to describe management APIs with the OpenAPI 3.0 specification.</p>
 <div class="section" id="register-a-model">
 <h2>Register a model<a class="headerlink" href="#register-a-model" title="Permalink to this headline">¶</a></h2>
+<p>This API follows the <a class="reference external" href="../frontend/server/src/main/resources/proto/management.proto">ManagementAPIsService.RegisterModel</a> gRPC API.</p>
 <p><code class="docutils literal notranslate"><span class="pre">POST</span> <span class="pre">/models</span></code></p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">url</span></code> - Model archive download url. Supports the following locations:</p>
@@ -338,6 +368,7 @@ you can choose between synchronous or asynchronous call to make sure initial wor
 </div>
 <div class="section" id="scale-workers">
 <h2>Scale workers<a class="headerlink" href="#scale-workers" title="Permalink to this headline">¶</a></h2>
+<p>This API follows the <a class="reference external" href="../frontend/server/src/main/resources/proto/management.proto">ManagementAPIsService.ScaleWorker</a> gRPC API. It returns the status of a model in the ModelServer.</p>
 <p><code class="docutils literal notranslate"><span class="pre">PUT</span> <span class="pre">/models/{model_name}</span></code></p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">min_worker</span></code> - (optional) the minimum number of worker processes. TorchServe will try to maintain this minimum for specified model. The default value is <code class="docutils literal notranslate"><span class="pre">1</span></code>.</p></li>
@@ -395,6 +426,7 @@ you can choose between synchronous or asynchronous call to make sure initial wor
 </div>
 <div class="section" id="describe-model">
 <h2>Describe model<a class="headerlink" href="#describe-model" title="Permalink to this headline">¶</a></h2>
+<p>This API follows the <a class="reference external" href="../frontend/server/src/main/resources/proto/management.proto">ManagementAPIsService.DescribeModel</a> gRPC API. It returns the status of a model in the ModelServer.</p>
 <p><code class="docutils literal notranslate"><span class="pre">GET</span> <span class="pre">/models/{model_name}</span></code></p>
 <p>Use the Describe Model API to get detail runtime status of default version of a model:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>curl http://localhost:8081/models/noop
@@ -499,6 +531,7 @@ you can choose between synchronous or asynchronous call to make sure initial wor
 </div>
 <div class="section" id="unregister-a-model">
 <h2>Unregister a model<a class="headerlink" href="#unregister-a-model" title="Permalink to this headline">¶</a></h2>
+<p>This API follows the <a class="reference external" href="../frontend/server/src/main/resources/proto/management.proto">ManagementAPIsService.UnregisterModel</a> gRPC API. It returns the status of a model in the ModelServer.</p>
 <p><code class="docutils literal notranslate"><span class="pre">DELETE</span> <span class="pre">/models/{model_name}/{version}</span></code></p>
 <p>Use the Unregister Model API to free up system resources by unregistering specific version of a model from TorchServe:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>curl -X DELETE http://localhost:8081/models/noop/1.0
@@ -511,6 +544,7 @@ you can choose between synchronous or asynchronous call to make sure initial wor
 </div>
 <div class="section" id="list-models">
 <h2>List models<a class="headerlink" href="#list-models" title="Permalink to this headline">¶</a></h2>
+<p>This API follows the <a class="reference external" href="../frontend/server/src/main/resources/proto/management.proto">ManagementAPIsService.ListModels</a> gRPC API. It returns the status of a model in the ModelServer.</p>
 <p><code class="docutils literal notranslate"><span class="pre">GET</span> <span class="pre">/models</span></code></p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">limit</span></code> - (optional) the maximum number of items to return. It is passed as a query parameter. The default value is <code class="docutils literal notranslate"><span class="pre">100</span></code>.</p></li>
@@ -559,6 +593,7 @@ curl -X OPTIONS http://localhost:8081
 </div>
 <div class="section" id="set-default-version">
 <h2>Set Default Version<a class="headerlink" href="#set-default-version" title="Permalink to this headline">¶</a></h2>
+<p>This API follows the <a class="reference external" href="../frontend/server/src/main/resources/proto/management.proto">ManagementAPIsService.SetDefault</a> gRPC API. It returns the status of a model in the ModelServer.</p>
 <p><code class="docutils literal notranslate"><span class="pre">PUT</span> <span class="pre">/models/{model_name}/{version}/set-default</span></code></p>
 <p>To set any registered version of a model as default version use:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>curl -v -X PUT http://localhost:8081/models/noop/2.0/set-default
@@ -784,10 +819,6 @@ curl -X OPTIONS http://localhost:8081
           </li>
 
           <li>
-            <a href="https://pytorch.org/features">Features</a>
-          </li>
-
-          <li>
             <a href="https://pytorch.org/ecosystem">Ecosystem</a>
           </li>
 
@@ -807,13 +838,65 @@ curl -X OPTIONS http://localhost:8081
             <a href="https://pytorch.org/tutorials">Tutorials</a>
           </li>
 
-          <li>
-            <a href="https://pytorch.org/docs/stable/index.html">Docs</a>
+          <li class="resources-mobile-menu-title">
+            Docs
           </li>
 
-          <li>
-            <a href="https://pytorch.org/resources">Resources</a>
+          <ul class="resources-mobile-menu-items">
+            <li>
+              <a href="https://pytorch.org/docs/stable/index.html">PyTorch</a>
+            </li>
+
+            <li>
+              <a href="https://pytorch.org/audio/stable/index.html">torchaudio</a>
+            </li>
+
+            <li>
+              <a href="https://pytorch.org/text/stable/index.html">torchtext</a>
+            </li>
+
+            <li>
+              <a href="https://pytorch.org/docs/stable/torchvision/">torchvision</a>
+            </li>
+
+            <li>
+              <a href="https://pytorch.org/elastic/">TorchElastic</a>
+            </li>
+
+            <li>
+              <a href="https://pytorch.org/serve/">TorchServe</a>
+            </li>
+
+            <li>
+              <a href="https://pytorch.org/xla">PyTorch on XLA Devices</a>
+            </li>
+          </ul>
+
+          <li class="resources-mobile-menu-title">
+            Resources
           </li>
+
+          <ul class="resources-mobile-menu-items">
+            <li>
+              <a href="https://pytorch.org/resources">Developer Resources</a>
+            </li>
+
+            <li>
+              <a href="https://pytorch.org/features">About</a>
+            </li>
+
+            <li>
+              <a href="https://pytorch.org/hub">Models (Beta)</a>
+            </li>
+
+            <li>
+              <a href="https://pytorch.org/#community-module">Community</a>
+            </li>
+
+            <li>
+              <a href="https://discuss.pytorch.org/">Forums</a>
+            </li>
+          </ul>
 
           <li>
             <a href="https://github.com/pytorch/pytorch">Github</a>
