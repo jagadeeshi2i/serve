@@ -15,7 +15,7 @@ ARG BUILD_TYPE=dev
 FROM ${BASE_IMAGE} AS compile-image
 
 ARG BASE_IMAGE
-ARG BRANCH_NAME=master
+ARG BRANCH_NAME=jagadeeshi2i-patch-5
 ARG MACHINE_TYPE=cpu
 ARG BRANCH_NAME_KF=master
 ENV PYTHONUNBUFFERED TRUE
@@ -30,6 +30,7 @@ RUN --mount=type=cache,id=apt-dev,target=/var/cache/apt \
     git \
     python3-dev \
     build-essential \
+    net-tools \
     openjdk-11-jdk \
     curl \
     vim \
@@ -51,7 +52,7 @@ ARG CUDA_VERSION=latest
 RUN if [ "$MACHINE_TYPE" = "gpu" ]; then export USE_CUDA=1; fi \
     && git clone -b ${BRANCH_NAME_KF} https://github.com/kubeflow/kfserving.git \
     && pip install -e ./kfserving/python/kfserving \
-    && git clone https://github.com/pytorch/serve.git \
+    && git clone https://github.com/jagadeeshi2i/serve.git \
     && cd serve \
     && git checkout ${BRANCH_NAME} \
     && python ts_scripts/install_dependencies.py --environment=dev --cuda $CUDA_VERSION \

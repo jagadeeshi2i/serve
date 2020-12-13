@@ -146,7 +146,7 @@ class TransformersSeqClassifierHandler(BaseHandler, ABC):
                 if input_batch is None:
                     input_batch = input_ids
                 else:
-                    input_batch = torch.cat((input_batch, input_ids), 0)
+                    input_batch = torch.stack((input_batch, input_ids), 0).to(self.device)
         return input_batch
 
     def inference(self, input_batch):
