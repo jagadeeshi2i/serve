@@ -4,12 +4,20 @@ kind: ClusterConfig
 metadata:
   name: "TorchserveCluster"
   region: "us-west-2"
-  
-nodeGroups:
-  - name: ng-1
+
+managedNodeGroups:
+  - name: m-node-group-1
     instanceType: g4dn.xlarge
-    desiredCapacity: 1
+    ami: <eks-optimized-ami>
+    minSize: 1
+    maxSize: 3
+    desiredCapacity: 2
+    overrideBootstrapCommand: |
+      #!/bin/bash
+      set -ex
+      /etc/eks/bootstrap.sh <cluster-name> --container-runtime containerd
 
 cloudWatch:
   clusterLogging:
-    enableTypes: ["audit", "authenticator", "api", "controllerManager", "scheduler"]
+    enableTypes:
+      ["audit", "authenticator", "api", "controllerManager", "scheduler"]
