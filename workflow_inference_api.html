@@ -10,7 +10,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Introduction &mdash; PyTorch/Serve master documentation</title>
+  <title>Workflow Inference API &mdash; PyTorch/Serve master documentation</title>
   
 
   
@@ -221,9 +221,13 @@
             
               <!-- Local TOC -->
               <div class="local-toc"><ul>
-<li><a class="reference internal" href="#">Introduction</a></li>
-<li><a class="reference internal" href="#usage">Usage</a></li>
-<li><a class="reference internal" href="#contributing">Contributing</a></li>
+<li><a class="reference internal" href="#">Workflow Inference API</a><ul>
+<li><a class="reference internal" href="#predictions-api">Predictions API</a><ul>
+<li><a class="reference internal" href="#curl-example">curl Example</a></li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
 </div>
             
@@ -264,13 +268,13 @@
       </li>
 
         
-      <li>Introduction</li>
+      <li>Workflow Inference API</li>
     
     
       <li class="pytorch-breadcrumbs-aside">
         
             
-            <a href="_sources/request_envelopes.md.txt" rel="nofollow"><img src="_static/images/view-page-source-icon.svg"></a>
+            <a href="_sources/workflow_inference_api.md.txt" rel="nofollow"><img src="_static/images/view-page-source-icon.svg"></a>
           
         
       </li>
@@ -296,27 +300,27 @@
             <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
              <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
               
-  <section id="introduction">
-<h1>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h1>
-<p>Many model serving systems provide a signature for request bodies. Examples include:</p>
+  <section id="workflow-inference-api">
+<h1>Workflow Inference API<a class="headerlink" href="#workflow-inference-api" title="Permalink to this headline">¶</a></h1>
+<p>Workflow Inference API is listening on port 8080 and only accessible from localhost by default. To change the default setting, see <a class="reference internal" href="configuration.html"><span class="doc">TorchServe Configuration</span></a>.</p>
+<p>The TorchServe server supports the following APIs:</p>
 <ul class="simple">
-<li><p><a class="reference external" href="https://docs.seldon.io/projects/seldon-core/en/v1.1.0/graph/protocols.html">Seldon</a></p></li>
-<li><p><a class="reference external" href="https://github.com/kubeflow/kfserving/tree/master/docs">KFServing</a></p></li>
-<li><p><a class="reference external" href="https://cloud.google.com/ai-platform/prediction/docs/online-predict">Google Cloud AI Platform</a></p></li>
+<li><p><a class="reference external" href="#predictions-api">Predictions API</a> - Gets predictions from the served model</p></li>
 </ul>
-<p>Data scientists use these multi-framework systems to manage deployments of many different models, possibly written in different languages and frameworks. The platforms offer additional analytics on top of model serving, including skew detection, explanations and A/B testing. These platforms need a well-structured signature in order to both standardize calls across different frameworks and to understand the input data. To simplify support for many frameworks, though, these platforms will simply pass the request body along to the underlying model server.</p>
-<p>Torchserve currently has no fixed request body signature. Envelopes allow you to automatically translate from the fixed signature required for your model orchestrator to a flat Python list.</p>
+<section id="predictions-api">
+<h2>Predictions API<a class="headerlink" href="#predictions-api" title="Permalink to this headline">¶</a></h2>
+<p>To get predictions from a workflow, make a REST call to <code class="docutils literal notranslate"><span class="pre">/wfpredict/{workflow_name}</span></code>:</p>
+<p><code class="docutils literal notranslate"><span class="pre">POST</span> <span class="pre">/wfpredict/{workflow_name}</span></code></p>
+<section id="curl-example">
+<h3>curl Example<a class="headerlink" href="#curl-example" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>curl -O https://raw.githubusercontent.com/pytorch/serve/master/docs/images/kitten_small.jpg
+
+curl http://localhost:8080/wfpredict/myworkflow -T kitten_small.jpg
+</pre></div>
+</div>
+<p>The result is JSON object returning the response bytes from the leaf node of the workflow DAG.</p>
 </section>
-<section id="usage">
-<h1>Usage<a class="headerlink" href="#usage" title="Permalink to this headline">¶</a></h1>
-<ol class="simple">
-<li><p>When you write a handler, always expect a plain Python list containing data ready to go into <code class="docutils literal notranslate"><span class="pre">preprocess</span></code>. Crucially, you should assume that your handler code looks the same locally or in your model orchestrator.</p></li>
-<li><p>When you deploy Torchserve behind a model orchestrator, make sure to set the corresponding <code class="docutils literal notranslate"><span class="pre">service_envelope</span></code> in your <code class="docutils literal notranslate"><span class="pre">config.properties</span></code> file. For example, if you’re using Google Cloud AI Platform, which has a JSON format, you’d add <code class="docutils literal notranslate"><span class="pre">service_envelope=json</span></code> to your <code class="docutils literal notranslate"><span class="pre">config.properties</span></code> file.</p></li>
-</ol>
 </section>
-<section id="contributing">
-<h1>Contributing<a class="headerlink" href="#contributing" title="Permalink to this headline">¶</a></h1>
-<p>Add new files under <a class="reference external" href="https://github.com/pytorch/serve/tree/master/ts/torch_handler">ts/torch_handler/request_envelope</a>. Only include one class per file. The key used in <code class="docutils literal notranslate"><span class="pre">config.properties</span></code> will be the name of the .py file you write your class in.</p>
 </section>
 
 
@@ -353,9 +357,13 @@
           <div class="pytorch-right-menu" id="pytorch-right-menu">
             <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
               <ul>
-<li><a class="reference internal" href="#">Introduction</a></li>
-<li><a class="reference internal" href="#usage">Usage</a></li>
-<li><a class="reference internal" href="#contributing">Contributing</a></li>
+<li><a class="reference internal" href="#">Workflow Inference API</a><ul>
+<li><a class="reference internal" href="#predictions-api">Predictions API</a><ul>
+<li><a class="reference internal" href="#curl-example">curl Example</a></li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
 
             </div>

@@ -6,7 +6,8 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <title>TorchServe REST API &mdash; PyTorch/Serve master documentation</title>
@@ -27,11 +28,17 @@
 
   <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <!-- <link rel="stylesheet" href="_static/pygments.css" type="text/css" /> -->
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.10.0-beta/dist/katex.min.css" type="text/css" />
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css" type="text/css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.13.11/dist/katex.min.css" type="text/css" />
   <link rel="stylesheet" href="_static/katex-math.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="search.html" /> 
+    <link rel="search" title="Search" href="search.html" />
+  <!-- Google Analytics -->
+  
+  <!-- End Google Analytics -->
+  
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -55,6 +62,7 @@
 <link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size2-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
 <link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size3-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
 <link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Caligraphic-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.2/css/all.css" integrity="sha384-vSIIfh2YWi9wW0r9iZe7RJPrKwp6bG+s9QZMoITbCckVJqGCCRhc+ccxNcdpHuYu" crossorigin="anonymous">
 </head>
 
 <div class="container-fluid header-holder tutorials-header" id="header-holder">
@@ -102,7 +110,7 @@
                   <span class="dropdown-title">torchtext</span>
                   <p></p>
                 </a>
-                <a class="doc-dropdown-option nav-dropdown-item" href="https://pytorch.org/docs/stable/torchvision/">
+                <a class="doc-dropdown-option nav-dropdown-item" href="https://pytorch.org/vision/stable/index.html">
                   <span class="dropdown-title">torchvision</span>
                   <p></p>
                 </a>
@@ -152,7 +160,7 @@
           </li>
 
           <li>
-            <a href="https://github.com/pytorch/pytorch">Github</a>
+            <a href="https://github.com/pytorch/pytorch">GitHub</a>
           </li>
         </ul>
       </div>
@@ -286,7 +294,7 @@
             <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
              <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
               
-  <div class="section" id="torchserve-rest-api">
+  <section id="torchserve-rest-api">
 <h1>TorchServe REST API<a class="headerlink" href="#torchserve-rest-api" title="Permalink to this headline">¶</a></h1>
 <p>TorchServe uses a RESTful API for both inference and management calls. The API is compliant with the <a class="reference external" href="https://swagger.io/specification/">OpenAPI specification 3.0</a>.
 You can easily generate client side code for Java, Scala, C#, or Javascript by using <a class="reference external" href="https://swagger.io/swagger-codegen/">swagger codegen</a>.</p>
@@ -295,10 +303,12 @@ You can easily generate client side code for Java, Scala, C#, or Javascript by u
 <li><p><a class="reference internal" href="inference_api.html"><span class="doc">Inference API</span></a></p></li>
 <li><p><a class="reference internal" href="management_api.html"><span class="doc">Management API</span></a></p></li>
 <li><p><a class="reference internal" href="metrics_api.html"><span class="doc">Metrics API</span></a></p></li>
+<li><p><a class="reference internal" href="workflow_inference_api.html"><span class="doc">Workflow Inference API</span></a></p></li>
+<li><p><a class="reference internal" href="workflow_management_api.html"><span class="doc">Workflow Management API</span></a></p></li>
 </ul>
 <p>By default, TorchServe listens on port 8080 for the Inference API and 8081 for the Management API.
 Both APIs are accessible only from localhost by default. To enable access from a remote host, see <a class="reference internal" href="configuration.html"><span class="doc">TorchServe Configuration</span></a>.</p>
-</div>
+</section>
 
 
              </article>
@@ -350,12 +360,12 @@ Both APIs are accessible only from localhost by default. To enable access from a
 
      
        <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
          <script src="_static/jquery.js"></script>
          <script src="_static/underscore.js"></script>
          <script src="_static/doctools.js"></script>
-         <script src="_static/language_data.js"></script>
-         <script src="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.js"></script>
-         <script src="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/contrib/auto-render.min.js"></script>
+         <script src="https://cdn.jsdelivr.net/npm/katex@0.13.11/dist/katex.min.js"></script>
+         <script src="https://cdn.jsdelivr.net/npm/katex@0.13.11/dist/contrib/auto-render.min.js"></script>
          <script src="_static/katex_autorenderer.js"></script>
      
 
@@ -539,7 +549,7 @@ Both APIs are accessible only from localhost by default. To enable access from a
             </li>
 
             <li>
-              <a href="https://pytorch.org/docs/stable/torchvision/">torchvision</a>
+              <a href="https://pytorch.org/vision/stable/index.html">torchvision</a>
             </li>
 
             <li>

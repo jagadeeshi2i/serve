@@ -10,7 +10,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Introduction &mdash; PyTorch/Serve master documentation</title>
+  <title>TorchServe Workflows &mdash; PyTorch/Serve master documentation</title>
   
 
   
@@ -221,9 +221,22 @@
             
               <!-- Local TOC -->
               <div class="local-toc"><ul>
-<li><a class="reference internal" href="#">Introduction</a></li>
-<li><a class="reference internal" href="#usage">Usage</a></li>
-<li><a class="reference internal" href="#contributing">Contributing</a></li>
+<li><a class="reference internal" href="#">TorchServe Workflows</a><ul>
+<li><a class="reference internal" href="#workflow-specification-file">Workflow Specification file</a><ul>
+<li><a class="reference internal" href="#workflow-models">Workflow Models</a></li>
+<li><a class="reference internal" href="#workflow-model-properties">Workflow model properties</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#workflow-dag">Workflow DAG</a><ul>
+<li><a class="reference internal" href="#sequential-dag">Sequential DAG</a></li>
+<li><a class="reference internal" href="#parallel-dag">Parallel DAG</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#handler-file">Handler file</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#related-docs">Related docs</a></li>
+<li><a class="reference internal" href="#known-issues">Known issues</a></li>
 </ul>
 </div>
             
@@ -264,13 +277,13 @@
       </li>
 
         
-      <li>Introduction</li>
+      <li>TorchServe Workflows</li>
     
     
       <li class="pytorch-breadcrumbs-aside">
         
             
-            <a href="_sources/request_envelopes.md.txt" rel="nofollow"><img src="_static/images/view-page-source-icon.svg"></a>
+            <a href="_sources/workflows.md.txt" rel="nofollow"><img src="_static/images/view-page-source-icon.svg"></a>
           
         
       </li>
@@ -296,27 +309,174 @@
             <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
              <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
               
-  <section id="introduction">
-<h1>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h1>
-<p>Many model serving systems provide a signature for request bodies. Examples include:</p>
-<ul class="simple">
-<li><p><a class="reference external" href="https://docs.seldon.io/projects/seldon-core/en/v1.1.0/graph/protocols.html">Seldon</a></p></li>
-<li><p><a class="reference external" href="https://github.com/kubeflow/kfserving/tree/master/docs">KFServing</a></p></li>
-<li><p><a class="reference external" href="https://cloud.google.com/ai-platform/prediction/docs/online-predict">Google Cloud AI Platform</a></p></li>
-</ul>
-<p>Data scientists use these multi-framework systems to manage deployments of many different models, possibly written in different languages and frameworks. The platforms offer additional analytics on top of model serving, including skew detection, explanations and A/B testing. These platforms need a well-structured signature in order to both standardize calls across different frameworks and to understand the input data. To simplify support for many frameworks, though, these platforms will simply pass the request body along to the underlying model server.</p>
-<p>Torchserve currently has no fixed request body signature. Envelopes allow you to automatically translate from the fixed signature required for your model orchestrator to a flat Python list.</p>
-</section>
-<section id="usage">
-<h1>Usage<a class="headerlink" href="#usage" title="Permalink to this headline">¶</a></h1>
+  <section id="torchserve-workflows">
+<h1>TorchServe Workflows<a class="headerlink" href="#torchserve-workflows" title="Permalink to this headline">¶</a></h1>
+<p>TorchServe can be used for serving ensemble of Pytorch models packaged as mar files and Python functions through Workflow APIs.</p>
+<p>It utilizes <a class="reference internal" href="rest_api.html"><span class="doc">REST based APIs</span></a> for workflow management and predictions.</p>
+<p>A Workflow is served on TorchServe using a workflow-archive(.war) which comprises of following:</p>
+<section id="workflow-specification-file">
+<h2>Workflow Specification file<a class="headerlink" href="#workflow-specification-file" title="Permalink to this headline">¶</a></h2>
+<p>A workflow specification is a YAML file which provides the details of the models to be executed and a DAG for defining data flow.</p>
+<p>The YAML file is split into a few sections</p>
 <ol class="simple">
-<li><p>When you write a handler, always expect a plain Python list containing data ready to go into <code class="docutils literal notranslate"><span class="pre">preprocess</span></code>. Crucially, you should assume that your handler code looks the same locally or in your model orchestrator.</p></li>
-<li><p>When you deploy Torchserve behind a model orchestrator, make sure to set the corresponding <code class="docutils literal notranslate"><span class="pre">service_envelope</span></code> in your <code class="docutils literal notranslate"><span class="pre">config.properties</span></code> file. For example, if you’re using Google Cloud AI Platform, which has a JSON format, you’d add <code class="docutils literal notranslate"><span class="pre">service_envelope=json</span></code> to your <code class="docutils literal notranslate"><span class="pre">config.properties</span></code> file.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">models</span></code> which include global model parameters</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">m1,m2,m3</span></code> all the relevant model parameters which would override the global model params</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dag</span></code> which describes the structure of the workflow, which nodes feed into which other nodes</p></li>
 </ol>
+<p>E.g.</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">models</span><span class="p">:</span>
+    <span class="c1">#global model params</span>
+    <span class="nt">min-workers</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
+    <span class="nt">max-workers</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">4</span>
+    <span class="nt">batch-size</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">3</span>
+    <span class="nt">max-batch-delay </span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">5000</span>
+    <span class="nt">retry-attempts </span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">3</span>
+    <span class="nt">timeout-ms </span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">5000</span>
+    <span class="nt">m1</span><span class="p">:</span>
+       <span class="nt">url </span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">model1.mar</span> <span class="c1">#local or public URI</span>
+       <span class="nt">min-workers</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>   <span class="c1">#override the global params</span>
+       <span class="nt">max-workers</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">2</span>
+       <span class="nt">batch-size</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">4</span>
+     
+    <span class="nt">m2</span><span class="p">:</span>
+       <span class="nt">url </span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">model2.mar</span>
+
+    <span class="nt">m3</span><span class="p">:</span>
+       <span class="nt">url </span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">model3.mar</span>
+       <span class="nt">batch-size</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">3</span>
+
+    <span class="nt">m4</span><span class="p">:</span>
+      <span class="nt">url </span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">model4.mar</span>
+ 
+<span class="nt">dag</span><span class="p">:</span>
+  <span class="nt">pre_processing </span><span class="p">:</span> <span class="p p-Indicator">[</span><span class="nv">m1</span><span class="p p-Indicator">]</span>
+  <span class="nt">m1 </span><span class="p">:</span> <span class="p p-Indicator">[</span><span class="nv">m2</span><span class="p p-Indicator">]</span>
+  <span class="nt">m2 </span><span class="p">:</span> <span class="p p-Indicator">[</span><span class="nv">m3</span><span class="p p-Indicator">]</span>
+  <span class="nt">m3 </span><span class="p">:</span> <span class="p p-Indicator">[</span><span class="nv">m4</span><span class="p p-Indicator">]</span>
+  <span class="nt">m4 </span><span class="p">:</span> <span class="p p-Indicator">[</span><span class="nv">postprocessing</span><span class="p p-Indicator">]</span>
+</pre></div>
+</div>
+<section id="workflow-models">
+<h3>Workflow Models<a class="headerlink" href="#workflow-models" title="Permalink to this headline">¶</a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">models</span></code> section of the workflow specification defines the models used in the workflow. It uses the following syntax:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">models</span><span class="p">:</span>
+    <span class="o">&lt;</span><span class="n">model_name</span><span class="o">&gt;</span><span class="p">:</span>
+        <span class="n">url</span><span class="p">:</span> <span class="o">&lt;</span><span class="n">local</span> <span class="ow">or</span> <span class="n">public</span> <span class="n">url</span> <span class="k">for</span> <span class="n">mar</span> <span class="n">file</span><span class="o">&gt;</span>
+</pre></div>
+</div>
 </section>
-<section id="contributing">
-<h1>Contributing<a class="headerlink" href="#contributing" title="Permalink to this headline">¶</a></h1>
-<p>Add new files under <a class="reference external" href="https://github.com/pytorch/serve/tree/master/ts/torch_handler">ts/torch_handler/request_envelope</a>. Only include one class per file. The key used in <code class="docutils literal notranslate"><span class="pre">config.properties</span></code> will be the name of the .py file you write your class in.</p>
+<section id="workflow-model-properties">
+<h3>Workflow model properties<a class="headerlink" href="#workflow-model-properties" title="Permalink to this headline">¶</a></h3>
+<p>User can define following workflow model properties:</p>
+<table border="1" class="docutils">
+<thead>
+<tr>
+<th>Properties</th>
+<th>Description</th>
+<th>Default value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>min-workers</td>
+<td>Number of minimum workers launched for every workflow model</td>
+<td>1</td>
+</tr>
+<tr>
+<td>max-workers</td>
+<td>Number of maximum workers launched for every workflow model</td>
+<td>1</td>
+</tr>
+<tr>
+<td>batch-size</td>
+<td>Batch size used for every workflow model</td>
+<td>1</td>
+</tr>
+<tr>
+<td>max-batch-delay</td>
+<td>Maximum batch delay time TorchServe waits for every workflow model to receive <code>batch_size</code> number of requests.</td>
+<td>50 ms</td>
+</tr>
+<tr>
+<td>retry-attempts</td>
+<td>Retry attempts for a specific workflow node incase of a failure</td>
+<td>1</td>
+</tr>
+<tr>
+<td>timeout-ms</td>
+<td>Timeout in MilliSeconds for a given node</td>
+<td>10000</td>
+</tr>
+</tbody>
+</table><p>These properties can be defined as a global value for every model and can be over-ridden at every model level in workflow specification. Refer the above example for more details.</p>
+</section>
+</section>
+<section id="workflow-dag">
+<h2>Workflow DAG<a class="headerlink" href="#workflow-dag" title="Permalink to this headline">¶</a></h2>
+<p>User can define the dataflow of a workflow using the <code class="docutils literal notranslate"><span class="pre">dag</span></code> section of the workflow specification. The <code class="docutils literal notranslate"><span class="pre">dag</span></code> consists of the model names defined in the <code class="docutils literal notranslate"><span class="pre">model</span></code> section and python function names which are implemented in the workflow-archive’s handler file.</p>
+<section id="sequential-dag">
+<h3>Sequential DAG<a class="headerlink" href="#sequential-dag" title="Permalink to this headline">¶</a></h3>
+<p>Eg.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">dag</span><span class="p">:</span>
+  <span class="n">function1</span> <span class="p">:</span> <span class="p">[</span><span class="n">model1</span><span class="p">]</span>
+  <span class="n">model1</span> <span class="p">:</span> <span class="p">[</span><span class="n">model2</span><span class="p">]</span>
+  <span class="n">model2</span> <span class="p">:</span> <span class="p">[</span><span class="n">function2</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>Which maps to this data flow</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nb">input</span> <span class="o">-&gt;</span> <span class="n">function1</span> <span class="o">-&gt;</span> <span class="n">model1</span> <span class="o">-&gt;</span> <span class="n">model2</span> <span class="o">-&gt;</span> <span class="n">function2</span> <span class="o">-&gt;</span> <span class="n">output</span>
+</pre></div>
+</div>
+</section>
+<section id="parallel-dag">
+<h3>Parallel DAG<a class="headerlink" href="#parallel-dag" title="Permalink to this headline">¶</a></h3>
+<p>E.g</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">dag</span><span class="p">:</span>
+  <span class="n">pre_processing</span><span class="p">:</span> <span class="p">[</span><span class="n">model1</span><span class="p">,</span> <span class="n">model2</span><span class="p">]</span>
+  <span class="n">model1</span><span class="p">:</span> <span class="p">[</span><span class="n">aggregate_func</span><span class="p">]</span>
+  <span class="n">model2</span><span class="p">:</span> <span class="p">[</span><span class="n">aggregate_func</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>Which maps to this data flow</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>                          <span class="n">model1</span>
+                         <span class="o">/</span>       \
+<span class="nb">input</span> <span class="o">-&gt;</span> <span class="n">preprocessing</span> <span class="o">-&gt;</span>         <span class="o">-&gt;</span> <span class="n">aggregate_func</span>
+                         \       <span class="o">/</span>
+                          <span class="n">model2</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="handler-file">
+<h2>Handler file<a class="headerlink" href="#handler-file" title="Permalink to this headline">¶</a></h2>
+<p>A handler file (python) is supplied in the workflow archive (.war) and consists of all the functions used in the workflow dag.</p>
+<p>Eg.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">preprocess</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+    <span class="k">pass</span>
+
+<span class="k">def</span> <span class="nf">postprocess</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+    <span class="k">pass</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="related-docs">
+<h1>Related docs<a class="headerlink" href="#related-docs" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li><p><a class="reference internal" href="workflow_inference_api.html"><span class="doc">workflow_inference_api.md</span></a></p></li>
+<li><p><a class="reference internal" href="workflow_management_api.html"><span class="doc">workflow_management_api.md</span></a></p></li>
+</ul>
+</section>
+<section id="known-issues">
+<h1>Known issues<a class="headerlink" href="#known-issues" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li><p>Each workflow dag node (model/function) will receive input as bytes</p></li>
+<li><p>Only following output types are supported by workflow models/functions : String, Int, List, Dict of String, int, Json serializable objects, byte array and Torch Tensors</p></li>
+<li><p>Workflow scale/updates is not supported through APIs. User will need to unregister the workflow and re-register with the required changes</p></li>
+<li><p>Snapshots are not supported for workflows and related models are not captured in the workflow</p></li>
+<li><p>Workflow versioning is not supported</p></li>
+<li><p>Workflows registration having public model URL with mar file names which are already registered will fail.</p></li>
+</ul>
 </section>
 
 
@@ -353,9 +513,22 @@
           <div class="pytorch-right-menu" id="pytorch-right-menu">
             <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
               <ul>
-<li><a class="reference internal" href="#">Introduction</a></li>
-<li><a class="reference internal" href="#usage">Usage</a></li>
-<li><a class="reference internal" href="#contributing">Contributing</a></li>
+<li><a class="reference internal" href="#">TorchServe Workflows</a><ul>
+<li><a class="reference internal" href="#workflow-specification-file">Workflow Specification file</a><ul>
+<li><a class="reference internal" href="#workflow-models">Workflow Models</a></li>
+<li><a class="reference internal" href="#workflow-model-properties">Workflow model properties</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#workflow-dag">Workflow DAG</a><ul>
+<li><a class="reference internal" href="#sequential-dag">Sequential DAG</a></li>
+<li><a class="reference internal" href="#parallel-dag">Parallel DAG</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#handler-file">Handler file</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#related-docs">Related docs</a></li>
+<li><a class="reference internal" href="#known-issues">Known issues</a></li>
 </ul>
 
             </div>
