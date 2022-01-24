@@ -1,12 +1,16 @@
 """ The repository to serve the Torchserve Models in the kserve side"""
 import logging
+import sys
+import json
 import kserve
-from kserve.kfmodel_repository import KFModelRepository
+from tornado.httpclient import AsyncHTTPClient
+from kserve.model_repository import ModelRepository
+
+TS_MODEL_STATUS_FORMAT = "http://{0}/models/{1}"
 
 logging.basicConfig(level=kserve.constants.KSERVE_LOGLEVEL)
 
-
-class TSModelRepository(KFModelRepository):
+class TSModelRepository(ModelRepository):
     """A repository of kserve KFModels
     Args:
         KFModelRepository (object): The parameters from the KFModelRepository is passed
@@ -27,3 +31,15 @@ class TSModelRepository(KFModelRepository):
         self.inference_address = inference_address
         self.management_address = management_address
         self.model_dir = model_dir
+
+    async def is_model_ready(self, name: str) -> bool:
+        headers = {"Content-Type": "application/json; charset=UTF-8"}
+        response = await AsyncHTTPClient(max_clients=sys.maxsize).fetch(
+            TS_MODEL_STATUS_FORMAT.format(self.inference_address.split("//")[1], name),
+            method="GET",
+            headers=headers,
+        )
+        response_body = json.loads(response.body)
+        if response_body[0].get('workers')[0].get('status') == 'READY':
+            self.ready = True
+        return self.ready

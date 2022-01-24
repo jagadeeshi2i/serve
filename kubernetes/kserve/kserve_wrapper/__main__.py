@@ -80,13 +80,13 @@ if __name__ == "__main__":
     models = []
 
     for model_name in model_names:
-
+    
         model = TorchserveModel(model_name, inference_address,
                                 management_address, model_dir)
         models.append(model)
-    kserve.KFServer(
+    kserve.ModelServer(
         registered_models=TSModelRepository(inference_address,
                                             management_address, model_dir),
-        http_port=8080,
+        http_port=9090,
         grpc_port=7070,
     ).start(models)
