@@ -87,6 +87,6 @@ if __name__ == "__main__":
     kserve.ModelServer(
         registered_models=TSModelRepository(inference_address,
                                             management_address, model_dir),
-        http_port=9090,
+        http_port=8080,
         grpc_port=7070,
     ).start(models)
