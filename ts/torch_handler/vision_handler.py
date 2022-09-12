@@ -14,11 +14,21 @@ from captum.attr import IntegratedGradients
 from .base_handler import BaseHandler
 from torchvision import transforms
 from PIL import Image
+from nvidia import dali
+from nvidia.dali import types
+from nvidia.dali.pipeline import pipeline_def
+from nvidia.dali.plugin.pytorch import DALIGenericIterator as PyTorchIterator
+
+from nvidia.dali.plugin.pytorch import LastBatchPolicy
 
 class VisionHandler(BaseHandler, ABC):
     """
     Base class for all vision handlers
     """
+
+    def __init__(self):
+        super().__init__()
+
     def initialize(self, context):
         super().initialize(context)
         self.ig = IntegratedGradients(self.model)
@@ -27,61 +37,41 @@ class VisionHandler(BaseHandler, ABC):
         if not properties.get("limit_max_image_pixels"):
             Image.MAX_IMAGE_PIXELS = None
         if "DALI_PREPROCESSING" in os.environ and os.environ["DALI_PREPROCESSING"].lower() == "true":
-            self.dali_pipeline()
+            self.batch_tensor = []
 
-    def dali_pipeline(self, batch_size=1, num_threads=1, device_id=0, resize=True, normalize_mean=True, normalize_std=True, crop=True):
-
-        from nvidia import dali
-        from nvidia.dali import types
-        from nvidia.dali.pipeline import Pipeline
-
-        self.batch_tensor = []
-        self.batch_size = batch_size
-
-        if not normalize_mean:
-            normalize_mean = [0.485*255, 0.456*255, 0.406*255]
-
-        if not normalize_std:
-            normalize_std = [0.229*255, 0.224*255, 0.225*255]
-
-        pipe = Pipeline(self.batch_size, num_threads=num_threads, device_id=device_id)
-        with pipe:
-            jpegs = dali.fn.external_source(source=[self.batch_tensor], cycle=True, dtype=types.UINT8)
-            jpegs = dali.fn.decoders.image(jpegs)
-            if resize:
-                jpegs = dali.fn.resize(jpegs, size=[256])
-
-            #TODO: split normalize and crop into separate methods
-            if crop:
-                normalized = dali.fn.crop_mirror_normalize(
-                    jpegs,
-                    crop_pos_x=0.5,
-                    crop_pos_y=0.5,
-                    crop=(224,224),
-                    mean=normalize_mean,
-                    std=normalize_std)
-            else:
-                normalized = dali.fn.crop_mirror_normalize(
-                    jpegs,
-                    mean=normalize_mean,
-                    std=normalize_std)
-            pipe.set_outputs(normalized)
-        pipe.build()
-        self.pipe = pipe
+    @pipeline_def(batch_size=5, num_threads=1, device_id=0)
+    def dali_pipeline(self):
+        jpegs = dali.fn.external_source(source=[self.batch_tensor], dtype=types.UINT8)
+        jpegs = dali.fn.decoders.image(jpegs)
+        resized = dali.fn.resize(jpegs, size=[256])
+        normalized = dali.fn.crop_mirror_normalize(
+            resized,
+            crop_pos_x=0.5,
+            crop_pos_y=0.5,
+            crop=(224,224),
+            mean=[0.485*255, 0.456*255, 0.406*255],
+            std=[0.229*255, 0.224*255, 0.225*255])
+        return normalized
 
     def dali_preprocess(self, data):
         input_byte_arrays = [i['body'] if 'body' in i else i['data'] for i in data]
         for byte_array in input_byte_arrays:
             np_image = np.frombuffer(byte_array, dtype = np.uint8)
             self.batch_tensor.append(np_image)  # we can use numpy
-        self.batch_size = len(self.batch_tensor)
-        pipe_out, = self.pipe.run()
+        # pii = PyTorchIterator(pipelines=[self.pipe], output_map=['data'])
+        # for i, data in enumerate(pii):
+        #    print("iter {}, real batch size: {}".format(i, len(data[0]["data"])))
+        # pii.reset()
+        # pipe_out, =self.pipe.run()
+        result = []
+        datam = PyTorchIterator([self.dali_pipeline()], ['data'], last_batch_policy=LastBatchPolicy.PARTIAL, last_batch_padded=True)
+        for i, data in enumerate(datam):
+            result.append(data[0]['data'])
         self.batch_tensor = []
-        #TODO: handle batched output
-        result = pipe_out.at(0)
 
-        return torch.tensor(result).unsqueeze(0)
-        
+        # return torch.tensor(result).unsqueeze(0)
+        return result[0].to(self.device)
+
     def preprocess(self, data):
         """The preprocess function of MNIST program converts the input data to a float tensor
 
@@ -91,7 +81,6 @@ class VisionHandler(BaseHandler, ABC):
         Returns:
             list : The preprocess function returns the input image as a list of float tensors.
         """
-
         if "DALI_PREPROCESSING" in os.environ and os.environ["DALI_PREPROCESSING"].lower() == "true":
             return self.dali_preprocess(data=data)
 
@@ -117,6 +106,8 @@ class VisionHandler(BaseHandler, ABC):
 
         return torch.stack(images).to(self.device)
 
+
     def get_insights(self, tensor_data, _, target=0):
         print("input shape", tensor_data.shape)
         return self.ig.attribute(tensor_data, target=target, n_steps=15).tolist()
+
