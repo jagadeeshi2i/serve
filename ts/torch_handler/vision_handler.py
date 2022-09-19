@@ -42,7 +42,7 @@ class VisionHandler(BaseHandler, ABC):
     @pipeline_def(batch_size=5, num_threads=1, device_id=0)
     def dali_pipeline(self):
         jpegs = dali.fn.external_source(source=[self.batch_tensor], dtype=types.UINT8)
-        jpegs = dali.fn.decoders.image(jpegs)
+        jpegs = dali.fn.decoders.image(jpegs, device='mixed')
         resized = dali.fn.resize(jpegs, size=[256])
         normalized = dali.fn.crop_mirror_normalize(
             resized,
@@ -54,15 +54,13 @@ class VisionHandler(BaseHandler, ABC):
         return normalized
 
     def dali_preprocess(self, data):
+        # input_byte_arrays = [list(i['body'].values()) if 'body' in i else i['data'] for i in data]
+        # for input_array in input_byte_arrays[0]:
+        #     byte_array = bytearray(base64.b64decode(input_array))
         input_byte_arrays = [i['body'] if 'body' in i else i['data'] for i in data]
         for byte_array in input_byte_arrays:
             np_image = np.frombuffer(byte_array, dtype = np.uint8)
             self.batch_tensor.append(np_image)  # we can use numpy
-        # pii = PyTorchIterator(pipelines=[self.pipe], output_map=['data'])
-        # for i, data in enumerate(pii):
-        #    print("iter {}, real batch size: {}".format(i, len(data[0]["data"])))
-        # pii.reset()
-        # pipe_out, =self.pipe.run()
         result = []
         datam = PyTorchIterator([self.dali_pipeline()], ['data'], last_batch_policy=LastBatchPolicy.PARTIAL, last_batch_padded=True)
         for i, data in enumerate(datam):
