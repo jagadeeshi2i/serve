@@ -1,0 +1,7 @@
+{
+  "url":"https://kubeflow-dataset.s3.us-east-2.amazonaws.com/bloom/token_classification/bloom.mar",
+  "requests": 1000,
+  "concurrency": 10,
+  "input": "../examples/Huggingface_Transformers/Seq_classification_artifacts/sample_text_captum_input.txt",
+  "exec_env": "local"
+}
