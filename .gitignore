@@ -1,7 +1,10 @@
 build/
 dist/
 *pyc
+logs/
+*.log
 *.lock
+.gitignore
 *__pycache__*
 *.egg-info/
 .idea
