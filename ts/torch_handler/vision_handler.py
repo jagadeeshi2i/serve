@@ -33,30 +33,36 @@ class VisionHandler(BaseHandler, ABC):
         super().initialize(context)
         self.ig = IntegratedGradients(self.model)
         self.initialized = True
-        self.properties = context.system_properties
-        if not self.properties.get("limit_max_image_pixels"):
+        properties = context.system_properties
+        if not properties.get("limit_max_image_pixels"):
             Image.MAX_IMAGE_PIXELS = None
+        if "DALI_PREPROCESSING" in os.environ and os.environ["DALI_PREPROCESSING"].lower() == "true":
+            self.model_dir = properties.get("model_dir")
+            config_file = open(self.model_dir + "/dali_config.json")
+            self.configs = json.load(config_file)
 
     def dali_preprocess(self, data):
         batch_tensor = []
+        batch_size = self.configs['batch_size']
+        num_threads = self.configs['num_threads']
+        device_id = self.configs['device_id']
 
         input_byte_arrays = [i['body'] if 'body' in i else i['data'] for i in data]
         for byte_array in input_byte_arrays:
             np_image = np.frombuffer(byte_array, dtype = np.uint8)
             batch_tensor.append(np_image)  # we can use numpy
 
-        model_dir = self.properties.get("model_dir")
-        filename = model_dir + "/model.dali"
-        prefetch_queue_depth = 2 
-        pipe = Pipeline.deserialize(filename=filename, batch_size=5, num_threads=2, device_id = 0, seed = 12)
-        pipe._max_batch_size = 1
-        pipe._num_threads = 2
-        pipe._device_id = 0
+        filename = self.model_dir + "/model.dali"
+        prefetch_queue_depth = 2
+        pipe.build() 
+        pipe = Pipeline.deserialize(filename=filename)
+        pipe._max_batch_size = batch_size
+        pipe._num_threads = num_threads
+        pipe._device_id = device_id
         for _ in range(prefetch_queue_depth):
             pipe.feed_input("my_source", batch_tensor)
 
         datam = PyTorchIterator([pipe], ['data'], last_batch_policy=LastBatchPolicy.PARTIAL, last_batch_padded=True)
-        #result = datam.next()
         result = []
         for i, data in enumerate(datam):
             result.append(data[0]['data'])
@@ -103,3 +109,4 @@ class VisionHandler(BaseHandler, ABC):
     def get_insights(self, tensor_data, _, target=0):
         print("input shape", tensor_data.shape)
         return self.ig.attribute(tensor_data, target=target, n_steps=15).tolist()
+

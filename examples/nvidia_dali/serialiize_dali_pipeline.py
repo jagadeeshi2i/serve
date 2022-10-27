@@ -1,19 +1,21 @@
 import nvidia.dali as dali
 import nvidia.dali.types as types
 import os
-
+import configparser
+import json
 
 def parse_args():
         import argparse
         parser = argparse.ArgumentParser()
         parser.add_argument("--save", default="./model_repository/model.dali")
+        parser.add_argument("--config", default="dali_config.json")
         return parser.parse_args()
 
 
 @dali.pipeline_def
 def pipe():
     jpegs = dali.fn.external_source(dtype=types.UINT8, name="my_source")
-    decoded = dali.fn.decoders.image(jpegs, device="mixed")
+    decoded = dali.fn.decoders.image(jpegs,device ='mixed')
     resized = dali.fn.resize(decoded, size = [256], subpixel_scale=False, interp_type=types.DALIInterpType.INTERP_LINEAR, antialias=True, mode="not_smaller")
     normalized = dali.fn.crop_mirror_normalize(
             resized,
@@ -26,7 +28,12 @@ def pipe():
     return normalized
 
 def main(filename):
-    pipe1 = pipe(batch_size=1, num_threads=2, device_id = 0, seed = 12)
+    config_file = open(args.config)
+    config = json.load(config_file)
+    batch_size = config['batch_size']
+    num_threads = config['num_threads']
+    device_id = config['device_id']
+    pipe1 = pipe(batch_size=batch_size, num_threads=num_threads, device_id = device_id)
     pipe1.serialize(filename=filename)
     print("Saved {}".format(filename))
 
@@ -34,3 +41,4 @@ if __name__ == '__main__':
     args = parse_args()
     os.makedirs(os.path.dirname(args.save), exist_ok=True)
     main(args.save)
+
