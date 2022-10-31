@@ -33,6 +33,7 @@ def main(filename):
     batch_size = config['batch_size']
     num_threads = config['num_threads']
     device_id = config['device_id']
+    
     pipe1 = pipe(batch_size=batch_size, num_threads=num_threads, device_id = device_id)
     pipe1.serialize(filename=filename)
     print("Saved {}".format(filename))
