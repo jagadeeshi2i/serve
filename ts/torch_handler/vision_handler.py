@@ -59,7 +59,6 @@ class VisionHandler(BaseHandler, ABC):
             batch_tensor.append(np_image)  # we can use numpy
 
         filename = self.model_dir + "/model.dali"
-        pipe.build()
         pipe = Pipeline.deserialize(filename=filename)
         pipe._max_batch_size = batch_size
         pipe._num_threads = num_threads
@@ -79,7 +78,6 @@ class VisionHandler(BaseHandler, ABC):
             result.append(data[0]["data"])
             break
 
-        # return torch.tensor(result).unsqueeze(0)
         return result[0].to(self.device)
 
     def preprocess(self, data):
