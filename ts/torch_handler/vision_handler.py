@@ -12,6 +12,9 @@ from abc import ABC
 import numpy as np
 import torch
 from captum.attr import IntegratedGradients
+from nvidia.dali.pipeline import Pipeline
+from nvidia.dali.plugin.pytorch import DALIGenericIterator as PyTorchIterator
+from nvidia.dali.plugin.pytorch import LastBatchPolicy
 from PIL import Image
 
 from .base_handler import BaseHandler
@@ -36,11 +39,6 @@ class VisionHandler(BaseHandler, ABC):
             "DALI_PREPROCESSING" in os.environ
             and os.environ["DALI_PREPROCESSING"].lower() == "true"
         ):
-            from nvidia.dali.pipeline import Pipeline
-            from nvidia.dali.plugin.pytorch import (
-                DALIGenericIterator as PyTorchIterator,
-            )
-            from nvidia.dali.plugin.pytorch import LastBatchPolicy
 
             self.model_dir = properties.get("model_dir")
             config_file = open(self.model_dir + "/dali_config.json")
