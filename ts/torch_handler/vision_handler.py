@@ -13,8 +13,7 @@ import numpy as np
 import torch
 from captum.attr import IntegratedGradients
 from nvidia.dali.pipeline import Pipeline
-from nvidia.dali.plugin.pytorch import DALIGenericIterator as PyTorchIterator
-from nvidia.dali.plugin.pytorch import LastBatchPolicy
+from nvidia.dali.plugin.pytorch import DALIGenericIterator, LastBatchPolicy
 from PIL import Image
 
 from .base_handler import BaseHandler
@@ -65,7 +64,7 @@ class VisionHandler(BaseHandler, ABC):
         for _ in range(prefetch_queue_depth):
             pipe.feed_input("my_source", batch_tensor)
 
-        datam = PyTorchIterator(
+        datam = DALIGenericIterator(
             [pipe],
             ["data"],
             last_batch_policy=LastBatchPolicy.PARTIAL,
