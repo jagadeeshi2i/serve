@@ -5,8 +5,7 @@ on:
   # schedule:
   #   - cron: "15 13 * * *"
   push:
-    branches:
-      - "dev"
+    branches: [dev]
 
 jobs:
   nightly:
