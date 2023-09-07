@@ -20,10 +20,10 @@ jobs:
         env:
           DOCKER_PASSWORD: ${{secrets.DOCKER_PASSWORD}}
         run: docker login --username jagadeeshj --password "$DOCKER_PASSWORD"
-      - name: Push Docker Nightly
-        run: |
-          cd docker
-          python docker_nightly.py
+      # - name: Push Docker Nightly
+      #   run: |
+      #     cd docker
+      #     python docker_nightly.py
       - name: Push KServe Docker Nightly
         run: |
           cd kubernetes/kserve
